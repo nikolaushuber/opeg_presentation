@@ -1,0 +1,432 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>reveal.js</title>
+
+		<link rel="stylesheet" href="dist/reset.css">
+		<link rel="stylesheet" href="dist/reveal.css">
+		<link rel="stylesheet" href="dist/theme/black.css">
+
+		<!-- Theme used for syntax highlighted code -->
+		<link rel="stylesheet" href="plugin/highlight/monokai.css">
+
+		<!-- Custom css -->
+		<link rel="stylesheet" href="custom/css/style.css">
+	</head>
+	<body>
+		<img class="logo" src="uu_logo/UU_logo_vit-cropped.svg">
+		<div class="reveal">
+			<div class="slides">
+<!-- BEGIN SLIDES -->
+<section>
+	<h2>Opeg - A PEG parser generator for OCaml</h2>
+	<p>Nikolaus Huber</p>
+	<p><a href="mailto:nikolaus.huber@it.uu.se">nikolaus.huber@it.uu.se</a></p>
+</section>
+
+
+<section>
+	<h5>Parsing Expression Grammars</h5>
+
+	<ul class="box-list">
+		<li class="fragment fade-in">Specify syntax</li>
+		<li class="fragment fade-in">Similar to CFGs</li>
+		<li class="fragment fade-in">Rely on ordered choice</li>
+	</ul>
+</section>
+
+
+<section>
+	<section data-auto-animate>
+		<h5>Example: Simple Arithmetic Expressions</h5>
+		<pre data-id="arith-grammar"><code class="ocaml" data-trim data-line-numbers="|1,4,7|2,3,5,6,8,9|">
+			expr:
+				/ term "+" expr 
+				/ term 
+			term:
+				/ atom "*" term 
+				/ atom 
+			atom:
+				/ NUM 
+				/ "(" expr ")" 
+		</code></pre>
+	</section>
+
+	<section data-auto-animate>
+		<pre data-id="arith-grammar"><code class="ocaml" data-trim data-line-numbers>
+			expr:
+				/ term "+" expr 
+				/ term 
+		</code></pre>
+	</section>
+
+	<section data-auto-animate>
+		<pre><code class="ocaml" data-trim data-line-numbers>
+			expr:
+				/ term "+" expr 
+				/ term 
+		</code></pre>
+
+		<pre data-id="arith-parser"><code class="ocaml" data-trim data-line-numbers>
+			type 'a parse_result = 
+				| Parse of 'a
+				| No_parse 
+		</code></pre>
+	</section>
+
+	<section data-auto-animate>
+		<pre><code class="ocaml" data-trim data-line-numbers="1">
+			expr:
+				/ term "+" expr 
+				/ term 
+		</code></pre>
+
+		<pre data-id="arith-parser"><code class="ocaml" data-trim data-line-numbers="5">
+			type 'a parse_result = 
+				| Parse of 'a
+				| No_parse 
+			
+			let rec expr = 
+		</code></pre>
+	</section>
+	<section data-auto-animate>
+		<pre><code class="ocaml" data-trim data-line-numbers="2">
+			expr:
+				/ term "+" expr 
+				/ term 
+		</code></pre>
+
+		<pre data-id="arith-parser"><code class="ocaml" data-trim data-line-numbers="6-11">
+			type 'a parse_result = 
+				| Parse of 'a
+				| No_parse 
+			
+			let rec expr = 
+				let alt1 () = 
+					let* t = term in 
+					let* _ = expect "+" in 
+					let* e = expr in  
+					Parse (* Create AST node *)
+				in
+		</code></pre>
+	</section>
+	<section data-auto-animate>
+		<pre><code class="ocaml" data-trim data-line-numbers="3">
+			expr:
+				/ term "+" expr 
+				/ term 
+		</code></pre>
+
+		<pre data-id="arith-parser"><code class="ocaml" data-trim data-line-numbers="13-16">
+			type 'a parse_result = 
+				| Parse of 'a
+				| No_parse 
+			
+			let rec expr = 
+				let alt1 () = 
+					let* t = term in 
+					let* _ = expect "+" in 
+					let* e = expr in  
+					Parse (* Create AST node *)
+				in
+				
+				let alt2 () = 
+					let* t = term in 
+					Parse (* Create AST node *)
+				in 
+		</code></pre>
+	</section>
+	<section data-auto-animate>
+		<pre><code class="ocaml" data-trim data-line-numbers>
+			expr:
+				/ term "+" expr 
+				/ term 
+		</code></pre>
+
+		<pre data-id="arith-parser"><code class="ocaml" data-trim data-line-numbers="18-22">
+			type 'a parse_result = 
+				| Parse of 'a
+				| No_parse 
+			
+			let rec expr = 
+				let alt1 () = 
+					let* t = term in 
+					let* _ = expect "+" in 
+					let* e = expr in  
+					Parse (* Create AST node *)
+				in
+				
+				let alt2 () = 
+					let* t = term in 
+					Parse (* Create AST node *)
+				in 
+
+				match alt1 () with 
+				| Parse x -> Parse x 
+				| No_parse -> (* backtrack *); match alt2 () with 
+					| Parse x -> Parse x 
+					| No_parse -> (* backtrack *); No_parse 
+		</code></pre>
+	</section>
+</section>
+
+<section>
+	<h5>Custom let binding</h5>
+
+	<pre><code class="ocaml" data-trim data-line-numbers>
+		let ( let* ) o f =
+			match o with
+			| No_parse -> No_parse
+			| Parse x -> f x
+	</code></pre>
+</section>
+
+<section>
+	<h5>Development of Opeg</h5>
+
+	<ul>
+		<li class="fragment fade-in">Handwritten parser => tedious & error prone</li>
+		<li class="fragment fade-in">Code generation => Parser generator</li>
+		<li class="fragment fade-in">Keep lexing separate => Compatibility with Menhir</li>
+		<span class="fragment fade-in">
+			<span class="fragment highlight-red">
+				<li>Define own grammar description language</li>
+			</span>
+		</span>
+		
+	</ul>
+</section>
+
+<section>
+	<section data-auto-animate>
+		<div class="dig-box-wrapper">
+			<div data-id="front-box" class="dig-box" style="border-color: #facf5a; color: #facf5a">
+				<p>Front end</p>
+			</div>
+			<div data-id="middle-box" class="dig-box" style="border-color: #1b9ca2; color: #1b9ca2">
+				<p>Middle end</p>
+			</div>
+			<div data-id="back-box" class="dig-box" style="border-color: #ff5959; color: #ff5959">
+				<p>Back end</p>
+			</div>
+		</div>
+	</section>
+	<section data-auto-animate>
+		<div class="dig-box-wrapper">
+			<div data-id="front-box" class="dig-box" style="border-color: #facf5a; color: #facf5a">
+				<p>Front end</p>
+				<ul style="color: var(--r-main-color)">
+					<li>Lexing</li>
+					<li>Parsing</li>
+				</ul>
+			</div>
+			<div data-id="middle-box" class="dig-box" style="border-color: #1b9ca2; color: #1b9ca2">
+				<p>Middle end</p>
+			</div>
+			<div data-id="back-box" class="dig-box" style="border-color: #ff5959; color: #ff5959">
+				<p>Back end</p>
+			</div>
+		</div>
+	</section>
+	<section data-auto-animate>
+		<div class="dig-box-wrapper">
+			<div data-id="front-box" class="dig-box" style="border-color: #facf5a; color: #facf5a">
+				<p>Front end</p>
+				<ul style="color: var(--r-main-color)">
+					<li>Lexing</li>
+					<li>Parsing</li>
+				</ul>
+			</div>
+			<div data-id="middle-box" class="dig-box" style="border-color: #1b9ca2; color: #1b9ca2">
+				<p>Middle end</p>
+				<ul style="color: var(--r-main-color)">
+					<li>Analysis</li>
+					<li>Optimization</li>
+				</ul>
+			</div>
+			<div data-id="back-box" class="dig-box" style="border-color: #ff5959; color: #ff5959">
+				<p>Back end</p>
+			</div>
+		</div>
+		</section>
+		<section data-auto-animate>
+			<div class="dig-box-wrapper">
+				<div data-id="front-box" class="dig-box" style="border-color: #facf5a; color: #facf5a">
+					<p>Front end</p>
+					<ul style="color: var(--r-main-color)">
+						<li>Lexing</li>
+						<li>Parsing</li>
+					</ul>
+				</div>
+				<div data-id="middle-box" class="dig-box" style="border-color: #1b9ca2; color: #1b9ca2">
+					<p>Middle end</p>
+					<ul style="color: var(--r-main-color)">
+						<li>Analysis</li>
+						<li>Optimization</li>
+					</ul>
+				</div>
+				<div data-id="back-box" class="dig-box" style="border-color: #ff5959; color: #ff5959">
+					<p>Back end</p>
+					<ul style="color: var(--r-main-color)">
+						<li>Code generation</li>
+					</ul>
+				</div>
+			</div>
+	</section>
+</section>
+
+<section>
+	<section data-auto-animate>
+		<h5>A parser for the parser generator</h5>
+		<ul class="box-list">
+			<li class="fragment fade-in">Use another parser generator</li>
+			<li class="fragment fade-in">Write parser by hand</li>
+			<li class="fragment fade-in">Bootstrap the parser</li>
+		</ul>
+	</section>
+	<section data-auto-animate>
+		<h5>A parser for the parser generator</h5>
+		<ul class="box-list">
+			<li style="color: red; border-color: red; text-decoration: line-through;">Use another parser generator</li>
+			<li style="color: red; border-color: red; text-decoration: line-through;">Write parser by hand</li>
+			<li style="color: green; border-color: green;">Bootstrap the parser</li>
+		</ul>
+	</section>
+</section>
+
+<section>
+	<h5>Metagrammar</h5>
+	<pre><code class="ocaml" data-trim data-line-numbers><script type="text/template">
+token: 
+    | TOK_KW_PARSER "parser" 
+    | TOK_KW_TOKEN "token" 
+    | TOK_HEADER <string> 
+    | TOK_SEM_ACTION <string> 
+    | TOK_NAME <string> 
+    | TOK_TYPE <string> 
+    | TOK_DOUBLE_DOTS ":" 
+    | TOK_CHOICE "/" 
+    | TOK_BAR "|" 
+    | TOK_EQUALS "=" 
+    | TOK_OPTION "?" 
+    | TOK_STAR "*" 
+    | TOK_PLUS "+" 
+    | TOK_SEC_DIVIDE "%%" 
+    | TOK_EOF "eof" 
+
+parser "parse" start
+
+%% 
+
+start <Parsetree.t>: 
+    / hd = TOK_HEADER? "token" ":" tl = tok+ "parser" 
+      name = TOK_NAME start_deriv = TOK_NAME "%%" 
+      rl = rule+ "eof" 
+        {
+            {
+                header = hd; 
+                parser_name = name;
+                start_deriv = start_deriv; 
+                tokens = tl; 
+                rules = rl;
+            } 
+        }
+
+tok <Parsetree.pt_tok>: 
+    / "|" n = TOK_NAME t = TOK_TYPE? short = TOK_NAME? 
+		{ (n, t, short) }
+
+rule <Parsetree.pt_rule>: 
+    / n = TOK_NAME t = TOK_TYPE ":" dl = alt+ 
+		{ (n, t, dl) }
+
+alt <Parsetree.pt_alt>: 
+    / "/" sl = symbol* act = TOK_SEM_ACTION 
+		{ (sl, act) }
+
+symbol <Parsetree.pt_symb>:
+    / syn = TOK_NAME "=" n = TOK_NAME suff = suffix? 
+		{ (n, Some syn, suff) }
+    / n = TOK_NAME suff = suffix? 
+		{ (n, None, suff) }
+
+suffix <Parsetree.symb_suffix>: 
+    / "?" { Optional }
+    / "+" { Plus }
+    / "*" { Star }
+</script></code></pre>
+</section>
+
+<section>
+	<h5>Left recursion</h5>
+</section>
+
+<section>
+	<h5>Performance analysis</h5>
+	<ul>
+		<li class="fragment fade-in">Compare to Menhir</li>
+		<li class="fragment fade-in">Need 2 parsers</li>
+		<li class="fragment fade-in">Need sufficient test programs</li>
+		<li class="fragment fade-in">Fexl</li>
+	</ul>
+</section>
+
+<section>
+	<h5>Results</h5>
+	<img class="r-stretch" src="runtime4.png">
+</section>
+
+<section>
+	<h5>Current limitations</h5>
+	<ul class="box-list">
+		<li class="fragment fade-in">Direct left recursion</li>
+		<li class="fragment fade-in">Minimal analysis</li>
+		<li class="fragment fade-in">Full memoization</li>
+		<li class="fragment fade-in">Error reporting</li>
+		<li class="fragment fade-in">Separate lexing</li>
+	</ul>
+</section>
+
+<section>
+	<h5>Use?</h5>
+	<ul class="box-list">
+		<li class="fragment fade-in">Education</li>
+		<li class="fragment fade-in">Language Engineering</li>
+	</ul>
+</section>
+
+<section>
+	<h3>Thank you for listening!</h3>
+	<p>Questions?</p>
+	<p><a href="https://github.com/nikolaushuber/opeg">https://github.com/nikolaushuber/opeg</a></p>
+</section>
+
+<!-- END SLIDES -->
+			</div>
+		</div>
+
+		
+
+		<script src="dist/reveal.js"></script>
+		<script src="plugin/notes/notes.js"></script>
+		<script src="plugin/markdown/markdown.js"></script>
+		<script src="plugin/highlight/highlight.js"></script>
+		<script src="plugin/menu/menu.js"></script>
+		<script>
+			// More info about initialization & config:
+			// - https://revealjs.com/initialization/
+			// - https://revealjs.com/config/
+			Reveal.initialize({
+				hash: true,
+				controlsTutorial: false,
+				transition: 'fade', 
+				slideNumber: 'c/t', 
+				// Learn about plugins: https://revealjs.com/plugins/
+				plugins: [ RevealMarkdown, RevealHighlight, RevealNotes, RevealMenu ]
+			});
+		</script>
+	</body>
+</html>

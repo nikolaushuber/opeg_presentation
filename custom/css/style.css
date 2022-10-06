@@ -1,0 +1,33 @@
+.dig-box-wrapper {
+    display: flex; 
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.dig-box {
+    flex: 1;
+    margin: 10px; 
+    border: 5px solid green; 
+}
+
+.box-list {
+    list-style-type: none !important;
+    position: relative; 
+    margin: 0px !important;
+    width: 70%;
+}
+
+.box-list li {
+    border: 5px solid #1b9ca2;
+    padding: 15px; 
+    margin-bottom: 5px;
+    width: 100%; 
+}
+
+.logo {
+    width: 10%; 
+    max-width: 100px;
+    position: fixed; 
+    top: 10%; 
+    right: 5%; 
+}

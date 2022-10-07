@@ -24,10 +24,22 @@
     width: 100%; 
 }
 
+.box-list li svg {
+    width: 3rem; 
+    vertical-align: middle; 
+    padding-right: 1rem; 
+    color: #1b9ca2;
+}
+
 .logo {
     width: 10%; 
     max-width: 100px;
     position: fixed; 
     top: 10%; 
     right: 5%; 
+    z-index: 1;
+}
+
+section h5 {
+    position: relative; 
 }

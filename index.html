@@ -372,7 +372,52 @@ suffix <Parsetree.symb_suffix>:
 </section>
 
 <section>
-	<h5>Left recursion</h5>
+	<section data-auto-animate>
+		<h5>Left recursion</h5>
+		<span class="fragment fade-in">
+			<p>Direct</p>
+			<pre><code class="ocaml" data-trim data-line-numbers>
+				expr: expr "+" term / term
+			</code></pre>
+		</span>
+		<span class="fragment fade-in">
+			<p>Indirect</p>
+			<pre><code class="ocaml" data-trim data-line-numbers>
+				expr: term "+" expr 
+				term: NUM / expr  
+			</code></pre>
+		</span>
+		<span class="fragment fade-in">
+			<p>Hidden</p>
+			<pre><code class="ocaml" data-trim data-line-numbers>
+				expr: "("? expr 
+				term: "a"* term   
+			</code></pre>
+		</span>
+	</section>
+	<section data-auto-animate>
+		<h5>Left recursion</h5>
+		<span style="color: green; text-decoration: underline;">
+			<p>Direct</p>
+			<pre><code class="ocaml" data-trim data-line-numbers>
+				expr: expr "+" term / term
+			</code></pre>
+		</span>
+		<span style="color: red; text-decoration: line-through;">
+			<p>Indirect</p>
+			<pre style="opacity: 0.2;"><code class="ocaml" data-trim data-line-numbers>
+				expr: term "+" expr 
+				term: NUM / expr  
+			</code></pre>
+		</span>
+		<span style="color: red; text-decoration: line-through;">
+			<p>Hidden</p>
+			<pre style="opacity: 0.2;"><code class="ocaml" data-trim data-line-numbers>
+				expr: "("? expr 
+				term: "a"* term   
+			</code></pre>
+		</span>
+	</section>
 </section>
 
 <section>
